@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up | SmartHealthPredictor</title>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/phosphor-icons"></script>
+
+    <style>
+      :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --accent-color: #e74c3c;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --text-color: #555;
+        --text-light: #777;
+        --white: #ffffff;
+        --silver: #c0c0c0;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        color: var(--text-color);
+        line-height: 1.6;
+        background: linear-gradient(135deg, #1a6fc9 0%, #2c3e50 100%);
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+      }
+
+      /* Signup Container */
+      .signup-container {
+        width: 100%;
+        max-width: 340px;
+        background: var(--white);
+        border-radius: 16px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+        transition: var(--transition);
+        animation: fadeInUp 0.6s ease;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .signup-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--secondary-color) 0%,
+          var(--accent-color) 100%
+        );
+      }
+
+      /* Logo Styles */
+      .logo {
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+      }
+
+      .brand-name {
+        color: var(--silver);
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+      }
+
+      .logo-icon {
+        font-size: 2.5rem;
+        color: var(--secondary-color);
+        margin-bottom: 0.25rem;
+        display: inline-block;
+      }
+
+      .logo h1 {
+        font-size: 1.5rem;
+        margin: 0;
+        color: var(--primary-color);
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      /* Form Styles */
+      .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .input-group label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--primary-color);
+      }
+
+      .input-group input {
+        padding: 0.8rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        background: #f9f9f9;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        background: var(--white);
+      }
+
+      .password-hint {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        margin-top: -0.5rem;
+      }
+
+      /* Button Styles */
+      .btn {
+        padding: 0.85rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: var(--transition);
+        border: none;
+        font-size: 0.95rem;
+      }
+
+      .btn-primary {
+        background: var(--secondary-color);
+        color: var(--white);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      }
+
+      .btn-primary:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      }
+
+      .btn-full-width {
+        width: 100%;
+      }
+
+      /* Footer */
+      .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
+      }
+
+      .auth-footer a {
+        color: var(--secondary-color);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      /* Terms Checkbox */
+      .terms-checkbox {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        margin: 0.5rem 0;
+      }
+
+      .terms-checkbox input {
+        margin-top: 0.25rem;
+      }
+
+      .terms-text {
+        font-size: 0.8rem;
+        color: var(--text-light);
+      }
+
+      .terms-text a {
+        color: var(--secondary-color);
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      /* Toast Notification */
+      .toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary-color);
+        color: var(--white);
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transition: var(--transition);
+        z-index: 1000;
+        font-size: 0.9rem;
+        text-align: center;
+        max-width: 90%;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .toast.hidden {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+
+      .toast.error {
+        background: var(--accent-color);
+      }
+
+      /* Loading spinner */
+      .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .btn-loading .spinner {
+        display: inline-block;
+      }
+
+      .btn-loading .btn-text {
+        display: none;
+      }
+
+      /* Error messages */
+      .error-message {
+        color: var(--accent-color);
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: none;
+      }
+
+      .input-error {
+        border-color: var(--accent-color) !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="signup-container">
+      <div class="logo">
+        <div class="brand-name">Smart Health Predictor</div>
+        <div class="logo-icon">🩺</div>
+        <h1>CREATE ACCOUNT</h1>
+      </div>
+
+      <form id="signupForm" class="auth-form">
+        <div class="input-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" required />
+          <div id="signupNameError" class="error-message"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" required />
+          <div id="signupEmailError" class="error-message"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" required />
+          <p class="password-hint">Minimum 8 characters with at least one number</p>
+          <div id="signupPasswordError" class="error-message"></div>
+        </div>
+
+        <div class="input-group">
+          <label for="signupConfirmPassword">Confirm Password</label>
+          <input type="password" id="signupConfirmPassword" required />
+          <div id="signupConfirmPasswordError" class="error-message"></div>
+        </div>
+
+        <div class="terms-checkbox">
+          <input type="checkbox" id="agreeTerms" required />
+          <label for="agreeTerms" class="terms-text">
+            I agree to the <a href="/terms">Terms of Service</a> and
+            <a href="/privacy">Privacy Policy</a>
+          </label>
+          <div id="agreeTermsError" class="error-message"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full-width" id="signupBtn">
+          <span class="spinner"></span>
+          <span class="btn-text"><i class="ph ph-user-plus"></i> Sign Up</span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="login.html">Sign in</a></p>
+      </div>
+
+      <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyA8JmqKtgdb5BUWVsfqrZYiyKnALx9rb7E",
+        authDomain: "smart-health-prediction-acd6f.firebaseapp.com",
+        projectId: "smart-health-prediction-acd6f",
+        storageBucket: "smart-health-prediction-acd6f.appspot.com",
+        messagingSenderId: "1082594120143",
+        appId: "1:1082594120143:web:0baddb2a34d67ec71f02ba",
+        measurementId: "G-37PQVMQ3Y0"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      // DOM elements
+      const signupForm = document.getElementById('signupForm');
+      const signupBtn = document.getElementById('signupBtn');
+      const toast = document.getElementById('toast');
+
+      // Show toast message
+      function showToast(message, isError = false) {
+        if (!toast) return;
+        
+        toast.textContent = message;
+        toast.className = isError ? 'toast show error' : 'toast show';
+        setTimeout(() => {
+          toast.className = 'toast hidden';
+        }, 4000);
+      }
+
+      // Show error message for a field
+      function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorElement = document.getElementById(`${fieldId}Error`);
+        
+        if (!field || !errorElement) return;
+        
+        field.classList.add('input-error');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+
+      // Clear error message for a field
+      function clearError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorElement = document.getElementById(`${fieldId}Error`);
+        
+        if (!field || !errorElement) return;
+        
+        field.classList.remove('input-error');
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      }
+
+      // Validate password
+      function validatePassword(password) {
+        // At least 8 characters with at least one number
+        const re = /^(?=.*\d).{8,}$/;
+        return re.test(password);
+      }
+
+      // Handle signup form submission
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Get form values
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+        const agreeTerms = document.getElementById('agreeTerms').checked;
+        
+        // Clear previous errors
+        ['signupName', 'signupEmail', 'signupPassword', 'signupConfirmPassword', 'agreeTerms'].forEach(field => {
+          clearError(field);
+        });
+        
+        // Validate form
+        let isValid = true;
+        
+        if (!name) {
+          showError('signupName', 'Please enter your full name');
+          isValid = false;
+        }
+        
+        if (!email) {
+          showError('signupEmail', 'Please enter your email');
+          isValid = false;
+        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+          showError('signupEmail', 'Please enter a valid email');
+          isValid = false;
+        }
+        
+        if (!password) {
+          showError('signupPassword', 'Please enter a password');
+          isValid = false;
+        } else if (!validatePassword(password)) {
+          showError('signupPassword', 'Password must be at least 8 characters with at least one number');
+          isValid = false;
+        }
+        
+        if (password !== confirmPassword) {
+          showError('signupConfirmPassword', 'Passwords do not match');
+          isValid = false;
+        }
+        
+        if (!agreeTerms) {
+          showError('agreeTerms', 'You must agree to the terms');
+          isValid = false;
+        }
+        
+        if (!isValid) {
+          showToast('Please fix the errors in the form', true);
+          return;
+        }
+        
+        try {
+          // Show loading state
+          signupBtn.classList.add('btn-loading');
+          
+          // Create user with email and password
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          const user = userCredential.user;
+          
+          // Save additional user data to Firestore
+          await db.collection('users').doc(user.uid).set({
+            name: name,
+            email: email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          
+          // Show success message
+          showToast('Account created successfully! You can now sign in.');
+          
+          // Clear form
+          signupForm.reset();
+          
+        } catch (error) {
+          console.error('Signup error:', error);
+          
+          // Handle specific errors
+          let errorMessage = 'Signup failed. Please try again.';
+          
+          if (error.code === 'auth/email-already-in-use') {
+            showError('signupEmail', 'This email is already registered');
+            errorMessage = 'This email is already registered.';
+          } else if (error.code === 'auth/weak-password') {
+            showError('signupPassword', 'Password is too weak');
+            errorMessage = 'Password is too weak. Use at least 8 characters with one number.';
+          } else if (error.code === 'auth/invalid-email') {
+            showError('signupEmail', 'Invalid email address');
+            errorMessage = 'Invalid email address.';
+          }
+          
+          showToast(errorMessage, true);
+        } finally {
+          // Remove loading state
+          signupBtn.classList.remove('btn-loading');
+        }
+      });
+    </script>
+  </body>
+</html>
