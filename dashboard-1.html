@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartHealthPredictor | Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --sky-blue: #87ceeb;
+      --deep-blue: #1e90ff;
+      --deep-blue-dark: #1873cc;
+      --glass-card: rgba(255, 255, 255, 0.25);
+      --glass-card-hover: rgba(255, 255, 255, 0.35);
+      --text-primary: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --text-light: #6e6e6e;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, rgba(135, 206, 235, 0.9), rgba(30, 144, 255, 0.9)),
+        url("https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80") no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      z-index: -1;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      margin-top: 0;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .main-content {
+      background: var(--glass-card);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: var(--transition);
+      min-height: 500px;
+    }
+
+    .main-content:hover {
+      background: var(--glass-card-hover);
+    }
+
+    .nav-panel {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      gap: 1rem;
+    }
+
+    .nav-item {
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      letter-spacing: 0.2px;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active {
+      background: white;
+      color: var(--deep-blue);
+      box-shadow: var(--shadow-md);
+    }
+
+    .nav-item i {
+      font-size: 1.1rem;
+    }
+
+    /* Symptom Checker Styles */
+    .symptom-checker {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    #symptomSearch {
+      width: 100%;
+      padding: 1.25rem 1.25rem 1.25rem 3rem;
+      border-radius: var(--radius-md);
+      border: none;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font-body);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    #symptomSearch:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.25rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--deep-blue);
+      font-size: 1.1rem;
+    }
+
+    .selected-symptoms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      min-height: 50px;
+    }
+
+    .symptom-tag {
+      background: white;
+      padding: 0.6rem 1.1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-sm);
+      font-weight: 500;
+      transition: var(--transition);
+    }
+
+    .symptom-tag:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .symptom-tag .remove-symptom {
+      color: var(--text-light);
+      transition: var(--transition);
+    }
+
+    .symptom-tag .remove-symptom:hover {
+      color: #ff4444;
+    }
+
+    .action-btn {
+      background: white;
+      color: var(--deep-blue);
+      border: none;
+      padding: 1.1rem 2.2rem;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      justify-content: center;
+      font-family: var(--font-heading);
+      letter-spacing: 0.3px;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      background: var(--deep-blue);
+      color: white;
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: var(--shadow-sm);
+      background: white;
+      color: var(--deep-blue);
+    }
+
+    .action-btn i {
+      font-size: 1.1rem;
+    }
+
+    /* Predictions History Styles */
+    .prediction-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .prediction-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .prediction-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .prediction-date {
+      color: var(--text-light);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .risk-level {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .risk-high {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+
+    .risk-medium {
+      background-color: #fff8e1;
+      color: #f57f17;
+    }
+
+    .risk-low {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    /* Appointments Styles */
+    .appointment-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .appointment-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .doctor-info {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .doctor-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .doctor-rating {
+      color: #ffc107;
+      font-size: 0.9rem;
+      margin-left: 0.25rem;
+    }
+
+    .appointment-details {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .appointment-details p {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .appointment-details i {
+      color: var(--deep-blue);
+    }
+
+    /* Doctor Booking Styles */
+    .doctor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .doctor-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .doctor-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .doctor-specialty {
+      display: inline-block;
+      background-color: rgba(30, 144, 255, 0.1);
+      color: var(--deep-blue);
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin: 0.5rem 0;
+    }
+
+    .doctor-availability {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin: 0.5rem 0;
+    }
+
+    .quick-actions {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .quick-actions h3 {
+      margin-bottom: 1rem;
+      color: var(--deep-blue);
+    }
+
+    .action-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .action-item {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: var(--transition);
+    }
+
+    .action-item:hover {
+      background: white;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .action-item i {
+      color: var(--deep-blue);
+      font-size: 1.2rem;
+    }
+
+    /* Profile Styles */
+    .profile-section {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 2.5rem;
+    }
+
+    .profile-sidebar {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      align-self: flex-start;
+    }
+
+    .user-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1.5rem;
+      display: block;
+      border: 4px solid white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .profile-info {
+      text-align: center;
+    }
+
+    .profile-info h3 {
+      margin-bottom: 0.5rem;
+    }
+
+    .profile-info p {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    /* Settings Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: var(--deep-blue);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Toast Notification */
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 30px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s, visibility 0.3s;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Autocomplete Dropdown */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      box-shadow: var(--shadow-md);
+    }
+
+    .autocomplete-items div {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      background-color: white;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .autocomplete-items div:hover {
+      background-color: #f5f5f5;
+    }
+
+    .autocomplete-active {
+      background-color: var(--deep-blue) !important;
+      color: white;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--deep-blue);
+      box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .profile-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .symptom-checker {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-panel {
+        flex-direction: column;
+      }
+
+      .nav-item {
+        justify-content: flex-start;
+        padding: 1rem;
+      }
+
+      .dashboard-container {
+        padding: 1.5rem 1rem;
+      }
+
+      .main-content {
+        padding: 1.5rem;
+      }
+
+      .doctor-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .appointment-details {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .action-btn {
+        width: 100%;
+        padding: 1rem;
+      }
+
+      .prediction-header {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .prediction-date {
+        align-self: flex-end;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <div class="nav-panel">
+      <div class="nav-item active" data-tab="symptom-checker">
+        <i class="fas fa-stethoscope"></i>
+        Symptom Checker
+      </div>
+      <div class="nav-item" data-tab="predictions">
+        <i class="fas fa-clipboard-list"></i>
+        My Predictions
+      </div>
+      <div class="nav-item" data-tab="appointments">
+        <i class="fas fa-calendar-alt"></i>
+        Appointments
+      </div>
+      <div class="nav-item" data-tab="doctors">
+        <i class="fas fa-user-md"></i>
+        Find Doctors
+      </div>
+      <div class="nav-item" data-tab="profile">
+        <i class="fas fa-user-circle"></i>
+        Profile
+      </div>
+    </div>
+
+    <div class="main-content" id="content-container">
+      <!-- Content will be dynamically loaded here -->
+      <div id="symptom-checker-content">
+        <h1>Symptom Checker</h1>
+        <p>Describe your symptoms to get personalized health insights</p>
+
+        <div class="quick-actions">
+          <h3>Quick Actions</h3>
+          <div class="action-list">
+            <div class="action-item">
+              <i class="fas fa-tint"></i>
+              <span>Drink water and stay hydrated</span>
+            </div>
+            <div class="action-item">
+              <i class="fas fa-bed"></i>
+              <span>Get adequate rest</span>
+            </div>
+            <div class="action-item">
+              <i class="fas fa-thermometer"></i>
+              <span>Check your temperature</span>
+            </div>
+            <div class="action-item">
+              <i class="fas fa-heartbeat"></i>
+              <span>Monitor your pulse</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="symptom-checker">
+          <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="symptomSearch" placeholder="Search symptoms (e.g. headache, fever)..."
+              autocomplete="off" />
+            <div id="autocomplete-container" class="autocomplete-items"></div>
+            <div class="selected-symptoms" id="selectedSymptoms">
+              <!-- Symptoms will appear here as tags -->
+            </div>
+          </div>
+        </div>
+
+        <button class="action-btn" id="predictBtn" disabled>
+          <i class="fas fa-heartbeat"></i>
+          Analyze Symptoms
+        </button>
+      </div>
+
+      <div id="predictions-content" style="display: none">
+        <h1>My Predictions</h1>
+        <p>Your recent health predictions and recommendations</p>
+
+        <div id="predictions-list">
+          <!-- Predictions will be loaded here dynamically -->
+        </div>
+      </div>
+
+      <div id="appointments-content" style="display: none">
+        <h1>My Appointments</h1>
+        <p>Upcoming and past medical consultations</p>
+
+        <div id="appointments-list">
+          <!-- Appointments will be loaded here dynamically -->
+        </div>
+      </div>
+
+      <div id="doctors-content" style="display: none">
+        <h1>Find Doctors</h1>
+        <p>Browse and book appointments with specialists</p>
+
+        <div class="doctor-grid" id="doctors-list">
+          <!-- Doctors will be loaded here dynamically -->
+        </div>
+      </div>
+
+      <div id="profile-content" style="display: none">
+        <h1>My Profile</h1>
+        <p>Manage your account and settings</p>
+
+        <div class="profile-section">
+          <div class="profile-sidebar">
+            <img src="" alt="User Avatar" class="user-avatar" id="profile-avatar" />
+            <div class="profile-info">
+              <h3 id="user-name">Loading...</h3>
+              <p id="member-since">Member since</p>
+              <div class="form-group">
+                <label for="avatar-upload">Update Profile Photo</label>
+                <input type="file" id="avatar-upload" accept="image/*" class="form-control" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="prediction-card">
+              <h3>Personal Information</h3>
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="user-fullname" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="user-email" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" id="user-phone" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="user-dob" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label>Blood Type</label>
+                <select id="user-blood-type" class="form-control">
+                  <option value="">Select blood type</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Allergies</label>
+                <textarea id="user-allergies" class="form-control" rows="3"></textarea>
+              </div>
+              <button class="action-btn" id="save-profile-btn">
+                <i class="fas fa-save"></i>
+                Save Changes
+              </button>
+            </div>
+
+            <div class="prediction-card">
+              <h3>Settings</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <p><strong>Dark Mode:</strong></p>
+                <label class="switch">
+                  <input type="checkbox" id="dark-mode-toggle" />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <p><strong>Notification Alerts:</strong></p>
+                <label class="switch">
+                  <input type="checkbox" id="notifications-toggle" checked />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <p><strong>Email Reminders:</strong></p>
+                <label class="switch">
+                  <input type="checkbox" id="email-reminders-toggle" checked />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA8JmqKtgdb5BUWVsfqrZYiyKnALx9rb7E",
+      authDomain: "smart-health-prediction-acd6f.firebaseapp.com",
+      projectId: "smart-health-prediction-acd6f",
+      storageBucket: "smart-health-prediction-acd6f.appspot.com",
+      messagingSenderId: "1082594120143",
+      appId: "1:1082594120143:web:0baddb2a34d67ec71f02ba",
+      measurementId: "G-37PQVMQ3Y0"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    // Ensure session-based auth so closing the tab clears session
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION).catch((error) => {
+      console.error('Error setting auth persistence:', error);
+    });
+
+    // Enhanced Database with more doctors and specialties
+    const database = {
+      users: [],
+      symptoms: [
+        { id: 1, name: "headache", category: "neurological" },
+        { id: 2, name: "fever", category: "general" },
+        { id: 3, name: "cough", category: "respiratory" },
+        { id: 4, name: "fatigue", category: "general" },
+        { id: 5, name: "nausea", category: "digestive" },
+        { id: 6, name: "dizziness", category: "neurological" },
+        { id: 7, name: "chest pain", category: "cardiovascular" },
+        { id: 8, name: "shortness of breath", category: "respiratory" },
+        { id: 9, name: "joint pain", category: "musculoskeletal" },
+        { id: 10, name: "sore throat", category: "respiratory" },
+        { id: 11, name: "rash", category: "dermatological" },
+        { id: 12, name: "abdominal pain", category: "digestive" },
+        { id: 13, name: "back pain", category: "musculoskeletal" },
+        { id: 14, name: "muscle pain", category: "musculoskeletal" },
+        { id: 15, name: "eye pain", category: "ocular" },
+        { id: 16, name: "ear pain", category: "auditory" },
+        { id: 17, name: "swelling", category: "general" },
+        { id: 18, name: "blurred vision", category: "ocular" },
+        { id: 19, name: "palpitations", category: "cardiovascular" },
+        { id: 20, name: "numbness", category: "neurological" }
+      ],
+      predictions: [],
+      appointments: [],
+      doctors: [
+        {
+          id: 1, name: "Dr. Yvonnie", specialty: "General Practitioner", rating: 4.8,
+          avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+          available: "Mon, Wed, Fri", hospital: "City Health Center"
+        },
+        {
+          id: 2, name: "Dr. Tomato", specialty: "Cardiologist", rating: 4.7,
+          avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+          available: "Tue, Thu, Sat", hospital: "Heart Care Clinic"
+        },
+        {
+          id: 3, name: "Dr. Marufu", specialty: "Neurologist", rating: 4.9,
+          avatar: "https://randomuser.me/api/portraits/men/68.jpg",
+          available: "Mon-Fri", hospital: "NeuroCare Institute"
+        },
+        {
+          id: 4, name: "Dr. Tanya", specialty: "Dermatologist", rating: 4.6,
+          avatar: "https://randomuser.me/api/portraits/women/63.jpg",
+          available: "Mon, Tue, Thu", hospital: "Skin Health Clinic"
+        },
+        {
+          id: 5, name: "Dr. Ivy", specialty: "Pediatrician", rating: 4.8,
+          avatar: "https://randomuser.me/api/portraits/women/33.jpg",
+          available: "Mon-Fri", hospital: "Children's Wellness Center"
+        },
+        {
+          id: 6, name: "Dr. Charlotte", specialty: "Orthopedic Surgeon", rating: 4.7,
+          avatar: "https://randomuser.me/api/portraits/women/55.jpg",
+          available: "Tue, Thu", hospital: "Bone & Joint Center"
+        },
+        {
+          id: 7, name: "Dr. Ruwizhi", specialty: "Emergency Medicine", rating: 4.9,
+          avatar: "https://randomuser.me/api/portraits/men/74.jpg",
+          available: "24/7", hospital: "City Emergency Center"
+        }
+      ]
+    };
+
+    // Check for existing user data in localStorage or Firebase auth
+    function checkForExistingUser() {
+      // Check if user is authenticated with Firebase
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // User is signed in, get their data from Firestore
+          firebase.firestore().collection('users').doc(user.uid).get().then((doc) => {
+            if (doc.exists) {
+              const userData = doc.data();
+              const currentUserData = {
+                id: user.uid,
+                name: userData.name || user.displayName || "User",
+                email: user.email,
+                phone: userData.phone || "",
+                dob: userData.dob || "",
+                bloodType: userData.bloodType || "",
+                allergies: userData.allergies || "",
+                joinDate: userData.createdAt ? new Date(userData.createdAt.toDate()).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
+                avatar: userData.avatar || "https://randomuser.me/api/portraits/men/1.jpg",
+                settings: userData.settings || {
+                  darkMode: false,
+                  notifications: true,
+                  emailReminders: true
+                }
+              };
+
+              database.users.push(currentUserData);
+              currentUser = currentUserData;
+              loadUserData();
+              showToast(`Welcome back, ${currentUserData.name}!`);
+            } else {
+              // User exists in Firebase Auth but not in Firestore, create profile
+              createUserProfile(user);
+            }
+          }).catch((error) => {
+            console.error('Error getting user data:', error);
+            showToast('Error loading user data', true);
+          });
+        } else {
+          // No user signed in, redirect to login
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    // Create user profile in Firestore
+    function createUserProfile(user) {
+      const newUserData = {
+        name: user.displayName || "User",
+        email: user.email,
+        phone: "",
+        dob: "",
+        bloodType: "",
+        allergies: "",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+        avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        settings: {
+          darkMode: false,
+          notifications: true,
+          emailReminders: true
+        }
+      };
+
+      firebase.firestore().collection('users').doc(user.uid).set(newUserData).then(() => {
+        const currentUserData = {
+          id: user.uid,
+          ...newUserData,
+          joinDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+        };
+
+        database.users.push(currentUserData);
+        currentUser = currentUserData;
+        loadUserData();
+        showToast(`Welcome, ${currentUserData.name}! Your profile has been created.`);
+      }).catch((error) => {
+        console.error('Error creating user profile:', error);
+        showToast('Error creating profile', true);
+      });
+    }
+
+    // DOM Elements
+    const symptomSearch = document.getElementById("symptomSearch");
+    const selectedSymptoms = document.getElementById("selectedSymptoms");
+    const predictBtn = document.getElementById("predictBtn");
+    const navItems = document.querySelectorAll(".nav-item");
+    const contentContainer = document.getElementById("content-container");
+    const tabContents = {
+      "symptom-checker": document.getElementById("symptom-checker-content"),
+      predictions: document.getElementById("predictions-content"),
+      appointments: document.getElementById("appointments-content"),
+      doctors: document.getElementById("doctors-content"),
+      profile: document.getElementById("profile-content")
+    };
+    const predictionsList = document.getElementById("predictions-list");
+    const appointmentsList = document.getElementById("appointments-list");
+    const doctorsList = document.getElementById("doctors-list");
+    const toast = document.getElementById("toast");
+    const autocompleteContainer = document.getElementById("autocomplete-container");
+
+    // Profile elements
+    const profileAvatar = document.getElementById("profile-avatar");
+    const userName = document.getElementById("user-name");
+    const userFullname = document.getElementById("user-fullname");
+    const userEmail = document.getElementById("user-email");
+    const userPhone = document.getElementById("user-phone");
+    const userDob = document.getElementById("user-dob");
+    const userBloodType = document.getElementById("user-blood-type");
+    const userAllergies = document.getElementById("user-allergies");
+    const memberSince = document.getElementById("member-since");
+    const saveProfileBtn = document.getElementById("save-profile-btn");
+    const avatarUpload = document.getElementById("avatar-upload");
+    const darkModeToggle = document.getElementById("dark-mode-toggle");
+    const notificationsToggle = document.getElementById("notifications-toggle");
+    const emailRemindersToggle = document.getElementById("email-reminders-toggle");
+
+    // Selected symptoms array
+    let selectedSymptomsList = [];
+    let currentUser = null;
+
+    // Initialize the application
+    function init() {
+      checkForExistingUser();
+
+      // Load predictions history
+      loadPredictions();
+
+      // Load appointments
+      loadAppointments();
+
+      // Load doctors
+      loadDoctors();
+
+      // Set up event listeners
+      setupEventListeners();
+    }
+
+    // Load user data
+    function loadUserData() {
+      if (!currentUser) return;
+
+      profileAvatar.src = currentUser.avatar;
+      userName.textContent = currentUser.name;
+      userFullname.value = currentUser.name;
+      userEmail.value = currentUser.email;
+      userPhone.value = currentUser.phone;
+      userDob.value = currentUser.dob;
+      userBloodType.value = currentUser.bloodType;
+      userAllergies.value = currentUser.allergies;
+      memberSince.textContent = `Member since ${currentUser.joinDate}`;
+
+      // Set settings toggles
+      darkModeToggle.checked = currentUser.settings.darkMode;
+      notificationsToggle.checked = currentUser.settings.notifications;
+      emailRemindersToggle.checked = currentUser.settings.emailReminders;
+    }
+
+    // Load predictions
+    function loadPredictions() {
+      predictionsList.innerHTML = "";
+
+      if (!currentUser) return;
+
+      // Load predictions from Firestore
+      firebase.firestore().collection('predictions')
+        .where('userId', '==', currentUser.id)
+        .orderBy('date', 'desc')
+        .get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            predictionsList.innerHTML = `<p>No prediction history found. Use the Symptom Checker to get started.</p>`;
+            return;
+          }
+
+          querySnapshot.forEach((doc) => {
+            const pred = { id: doc.id, ...doc.data() };
+
+            const predDate = new Date(pred.date);
+            const formattedDate = predDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+
+            const primaryCondition = pred.conditions[0];
+            let riskClass = "";
+            let riskText = "";
+
+            switch (primaryCondition.risk) {
+              case "high":
+                riskClass = "risk-high";
+                riskText = "High Risk";
+                break;
+              case "medium":
+                riskClass = "risk-medium";
+                riskText = "Medium Risk";
+                break;
+              case "low":
+                riskClass = "risk-low";
+                riskText = "Low Risk";
+                break;
+            }
+
+            const predictionCard = document.createElement("div");
+            predictionCard.className = "prediction-card";
+            predictionCard.innerHTML = `
+                <div class="prediction-header">
+                  <h3>${pred.symptoms.join(" & ")}</h3>
+                  <span class="prediction-date">${formattedDate}</span>
+                </div>
+                <div>
+                  <span class="risk-level ${riskClass}">${riskText}</span>
+                  <span class="risk-level risk-${primaryCondition.risk}" style="margin-left: 0.5rem;">
+                    ${primaryCondition.name} (${primaryCondition.probability}%)
+                  </span>
+                </div>
+                <p>${pred.recommendations}</p>
+                <button class="action-btn" data-prediction-id="${pred.id}">
+                  <i class="fas fa-${primaryCondition.risk === 'high' ? 'calendar-plus' : 'bookmark'}"></i>
+                  ${primaryCondition.risk === 'high' ? 'Book Specialist' : 'Save Report'}
+                </button>
+              `;
+
+            predictionsList.appendChild(predictionCard);
+          });
+        })
+        .catch((error) => {
+          console.error('Error loading predictions:', error);
+          predictionsList.innerHTML = `<p>Error loading predictions. Please try again.</p>`;
+        });
+    }
+
+    // Load appointments
+    function loadAppointments() {
+      appointmentsList.innerHTML = "";
+
+      if (!currentUser) return;
+
+      // Load appointments from Firestore
+      firebase.firestore().collection('appointments')
+        .where('userId', '==', currentUser.id)
+        .orderBy('date', 'asc')
+        .get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            appointmentsList.innerHTML = `<p>No appointments scheduled. Book your first consultation.</p>`;
+            return;
+          }
+
+          querySnapshot.forEach((doc) => {
+            const app = { id: doc.id, ...doc.data() };
+
+            const appDate = new Date(app.date);
+            const formattedDate = appDate.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric'
+            });
+
+            const stars = '★'.repeat(Math.floor(app.doctor.rating)) + '☆'.repeat(5 - Math.floor(app.doctor.rating));
+
+            const appointmentCard = document.createElement("div");
+            appointmentCard.className = "appointment-card";
+            appointmentCard.innerHTML = `
+                <div class="doctor-info">
+                  <img src="${app.doctor.avatar}" alt="${app.doctor.name}" class="doctor-avatar" />
+                  <div>
+                    <h3>${app.doctor.name}</h3>
+                    <p>${app.doctor.specialty} • ${app.doctor.rating.toFixed(1)} <span class="doctor-rating">${stars}</span></p>
+                  </div>
+                </div>
+                <div class="appointment-details">
+                  <p><i class="fas fa-calendar-alt"></i> ${formattedDate}, ${app.time}</p>
+                  <p><i class="fas fa-map-marker-alt"></i> ${app.location}</p>
+                </div>
+                <button class="action-btn" data-appointment-id="${app.id}">
+                  <i class="fas fa-${app.status === 'confirmed' ? 'video' : 'calendar-plus'}"></i>
+                  ${app.status === 'confirmed' ? 'Join Virtual Visit' : 'Reschedule'}
+                </button>
+              `;
+
+            appointmentsList.appendChild(appointmentCard);
+          });
+        })
+        .catch((error) => {
+          console.error('Error loading appointments:', error);
+          appointmentsList.innerHTML = `<p>Error loading appointments. Please try again.</p>`;
+        });
+    }
+
+    // Load doctors
+    function loadDoctors() {
+      doctorsList.innerHTML = "";
+
+      database.doctors.forEach(doctor => {
+        const stars = '★'.repeat(Math.floor(doctor.rating)) + '☆'.repeat(5 - Math.floor(doctor.rating));
+
+        const doctorCard = document.createElement("div");
+        doctorCard.className = "doctor-card";
+        doctorCard.innerHTML = `
+            <div class="doctor-info">
+              <img src="${doctor.avatar}" alt="${doctor.name}" class="doctor-avatar" />
+              <div>
+                <h3>${doctor.name}</h3>
+                <span class="doctor-specialty">${doctor.specialty}</span>
+                <p>${doctor.rating.toFixed(1)} <span class="doctor-rating">${stars}</span></p>
+              </div>
+            </div>
+            <p class="doctor-availability"><i class="fas fa-calendar-day"></i> Available: ${doctor.available}</p>
+            <p><i class="fas fa-hospital"></i> ${doctor.hospital}</p>
+            <button class="action-btn" data-doctor-id="${doctor.id}" style="margin: 1rem 0 0; padding: 0.75rem 1.5rem;">
+              <i class="fas fa-calendar-plus"></i>
+              Book Appointment
+            </button>
+          `;
+
+        doctorsList.appendChild(doctorCard);
+      });
+    }
+
+    // Set up event listeners
+    function setupEventListeners() {
+      // Symptom search autocomplete
+      symptomSearch.addEventListener("input", handleSymptomSearch);
+
+      // Add symptom when pressing Enter
+      symptomSearch.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && symptomSearch.value.trim()) {
+          addSymptom(symptomSearch.value.trim());
+          symptomSearch.value = "";
+          autocompleteContainer.innerHTML = "";
+        }
+      });
+
+      // Predict button handler
+      predictBtn.addEventListener("click", handlePrediction);
+
+      // Navigation handler
+      navItems.forEach((item) => {
+        item.addEventListener("click", () => {
+          const tabName = item.getAttribute("data-tab");
+          switchTab(tabName);
+        });
+      });
+
+      // Save profile button
+      saveProfileBtn.addEventListener("click", saveProfile);
+
+      // Avatar upload
+      avatarUpload.addEventListener("change", handleAvatarUpload);
+
+      // Settings toggles
+      darkModeToggle.addEventListener("change", (e) => {
+        if (!currentUser) return;
+        currentUser.settings.darkMode = e.target.checked;
+        updateUserData();
+        showToast(e.target.checked ? "Dark mode enabled" : "Dark mode disabled");
+      });
+
+      notificationsToggle.addEventListener("change", (e) => {
+        if (!currentUser) return;
+        currentUser.settings.notifications = e.target.checked;
+        updateUserData();
+        showToast(e.target.checked ? "Notifications enabled" : "Notifications disabled");
+      });
+
+      emailRemindersToggle.addEventListener("change", (e) => {
+        if (!currentUser) return;
+        currentUser.settings.emailReminders = e.target.checked;
+        updateUserData();
+        showToast(e.target.checked ? "Email reminders enabled" : "Email reminders disabled");
+      });
+
+      // Doctor booking (delegated event)
+      doctorsList.addEventListener("click", (e) => {
+        if (e.target.closest(".action-btn")) {
+          const doctorId = parseInt(e.target.closest(".action-btn").getAttribute("data-doctor-id"));
+          bookDoctor(doctorId);
+        }
+      });
+
+      // Appointment actions (delegated event)
+      appointmentsList.addEventListener("click", (e) => {
+        if (e.target.closest(".action-btn")) {
+          const appointmentId = parseInt(e.target.closest(".action-btn").getAttribute("data-appointment-id"));
+          handleAppointmentAction(appointmentId);
+        }
+      });
+
+      // Prediction actions (delegated event)
+      predictionsList.addEventListener("click", (e) => {
+        if (e.target.closest(".action-btn")) {
+          const predictionId = parseInt(e.target.closest(".action-btn").getAttribute("data-prediction-id"));
+          handlePredictionAction(predictionId);
+        }
+      });
+    }
+
+    // Handle symptom search with autocomplete
+    function handleSymptomSearch() {
+      const input = symptomSearch.value.trim().toLowerCase();
+      autocompleteContainer.innerHTML = "";
+
+      if (input.length < 2) return;
+
+      const matches = database.symptoms
+        .filter(symptom => symptom.name.includes(input))
+        .slice(0, 5);
+
+      if (matches.length === 0) {
+        const noResults = document.createElement("div");
+        noResults.textContent = "No matching symptoms found";
+        autocompleteContainer.appendChild(noResults);
+        return;
+      }
+
+      matches.forEach(symptom => {
+        const item = document.createElement("div");
+        item.textContent = symptom.name;
+        item.addEventListener("click", () => {
+          addSymptom(symptom.name);
+          symptomSearch.value = "";
+          autocompleteContainer.innerHTML = "";
+        });
+        autocompleteContainer.appendChild(item);
+      });
+    }
+
+    // Add symptom to list
+    function addSymptom(symptom) {
+      if (!selectedSymptomsList.includes(symptom)) {
+        selectedSymptomsList.push(symptom);
+        renderSelectedSymptoms();
+        showToast(`Added symptom: ${symptom}`);
+      } else {
+        showToast(`Symptom already added: ${symptom}`);
+      }
+    }
+
+    // Render selected symptoms as tags
+    function renderSelectedSymptoms() {
+      selectedSymptoms.innerHTML = "";
+
+      if (selectedSymptomsList.length === 0) {
+        selectedSymptoms.innerHTML = '<p style="color: var(--text-light); font-style: italic;">No symptoms selected yet</p>';
+        predictBtn.disabled = true;
+        return;
+      }
+
+      selectedSymptomsList.forEach((symptom) => {
+        const tag = document.createElement("div");
+        tag.className = "symptom-tag";
+        tag.innerHTML = `
+            <i class="fas fa-plus-circle"></i>
+            ${symptom}
+            <i class="fas fa-times remove-symptom" data-symptom="${symptom}"></i>
+          `;
+        selectedSymptoms.appendChild(tag);
+      });
+
+      // Add event listeners to remove buttons
+      document.querySelectorAll(".remove-symptom").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const symptom = e.target.getAttribute("data-symptom");
+          removeSymptom(symptom);
+        });
+      });
+
+      // Enable/disable predict button
+      predictBtn.disabled = selectedSymptomsList.length < 2;
+    }
+
+    // Remove symptom
+    function removeSymptom(symptom) {
+      selectedSymptomsList = selectedSymptomsList.filter(s => s !== symptom);
+      renderSelectedSymptoms();
+      showToast(`Removed symptom: ${symptom}`);
+    }
+
+    // Handle prediction
+    function handlePrediction() {
+      if (selectedSymptomsList.length < 2) {
+        showToast("Please add at least 2 symptoms for accurate prediction");
+        return;
+      }
+
+      // Show loading state
+      predictBtn.innerHTML = `<span class="spinner"></span> Analyzing...`;
+      predictBtn.disabled = true;
+
+      // Simulate API call
+      setTimeout(() => {
+        // Create a new prediction
+        const newPrediction = {
+          userId: currentUser.id,
+          symptoms: [...selectedSymptomsList],
+          date: new Date().toISOString(),
+          conditions: generateConditions(selectedSymptomsList),
+          recommendations: generateRecommendations(selectedSymptomsList),
+          notes: "Patient-reported symptoms analysis"
+        };
+
+        // Save to Firestore
+        firebase.firestore().collection('predictions').add(newPrediction).then((docRef) => {
+          // Add to local database with the Firestore ID
+          newPrediction.id = docRef.id;
+          database.predictions.push(newPrediction);
+
+          // Reset UI
+          predictBtn.innerHTML = `<i class="fas fa-heartbeat"></i> Analyze Symptoms`;
+          predictBtn.disabled = false;
+          selectedSymptomsList = [];
+          renderSelectedSymptoms();
+
+          // Switch to predictions tab and reload
+          switchTab("predictions");
+          loadPredictions();
+
+          showToast("Prediction complete! Results added to your history.");
+        }).catch((error) => {
+          console.error('Error saving prediction:', error);
+          showToast('Error saving prediction', true);
+
+          // Reset UI even if save failed
+          predictBtn.innerHTML = `<i class="fas fa-heartbeat"></i> Analyze Symptoms`;
+          predictBtn.disabled = false;
+        });
+      }, 2000);
+    }
+
+    // Generate mock conditions based on symptoms
+    function generateConditions(symptoms) {
+      // Expanded symptom-condition mapping with more conditions and combinations
+      const symptomConditions = {
+        // Head-related symptoms
+        "headache": [
+          { name: "Tension Headache", probability: 60, risk: "low" },
+          { name: "Migraine", probability: 45, risk: "medium" },
+          { name: "Cluster Headache", probability: 15, risk: "medium" },
+          { name: "Sinusitis", probability: 30, risk: "low" }
+        ],
+        "dizziness": [
+          { name: "Vertigo", probability: 55, risk: "medium" },
+          { name: "Low Blood Pressure", probability: 40, risk: "medium" },
+          { name: "Inner Ear Infection", probability: 35, risk: "low" },
+          { name: "Dehydration", probability: 45, risk: "low" }
+        ],
+        "blurred vision": [
+          { name: "Refractive Error", probability: 65, risk: "low" },
+          { name: "Migraine with Aura", probability: 30, risk: "medium" },
+          { name: "Diabetes", probability: 25, risk: "high" },
+          { name: "Glaucoma", probability: 15, risk: "high" }
+        ],
+
+        // Respiratory symptoms
+        "cough": [
+          { name: "Common Cold", probability: 70, risk: "low" },
+          { name: "Allergies", probability: 45, risk: "low" },
+          { name: "Bronchitis", probability: 40, risk: "medium" },
+          { name: "Asthma", probability: 30, risk: "medium" },
+          { name: "Pneumonia", probability: 20, risk: "high" }
+        ],
+        "shortness of breath": [
+          { name: "Asthma", probability: 50, risk: "medium" },
+          { name: "Anxiety", probability: 40, risk: "low" },
+          { name: "COPD", probability: 30, risk: "high" },
+          { name: "Pulmonary Embolism", probability: 15, risk: "high" }
+        ],
+        "sore throat": [
+          { name: "Viral Pharyngitis", probability: 65, risk: "low" },
+          { name: "Strep Throat", probability: 40, risk: "medium" },
+          { name: "Tonsillitis", probability: 35, risk: "medium" },
+          { name: "Mononucleosis", probability: 20, risk: "medium" }
+        ],
+
+        // Cardiovascular symptoms
+        "chest pain": [
+          { name: "Angina", probability: 40, risk: "high" },
+          { name: "Acid Reflux", probability: 45, risk: "medium" },
+          { name: "Muscle Strain", probability: 35, risk: "low" },
+          { name: "Heart Attack", probability: 20, risk: "high" }
+        ],
+        "palpitations": [
+          { name: "Anxiety", probability: 55, risk: "low" },
+          { name: "Arrhythmia", probability: 40, risk: "high" },
+          { name: "Hyperthyroidism", probability: 30, risk: "medium" },
+          { name: "Electrolyte Imbalance", probability: 25, risk: "medium" }
+        ],
+
+        // Gastrointestinal symptoms
+        "abdominal pain": [
+          { name: "Gastritis", probability: 50, risk: "medium" },
+          { name: "Irritable Bowel Syndrome", probability: 45, risk: "low" },
+          { name: "Food Poisoning", probability: 40, risk: "medium" },
+          { name: "Appendicitis", probability: 20, risk: "high" }
+        ],
+        "nausea": [
+          { name: "Gastroenteritis", probability: 60, risk: "low" },
+          { name: "Food Poisoning", probability: 45, risk: "medium" },
+          { name: "Migraine", probability: 30, risk: "medium" },
+          { name: "Pregnancy", probability: 25, risk: "low" }
+        ],
+        "diarrhea": [
+          { name: "Viral Gastroenteritis", probability: 70, risk: "low" },
+          { name: "Food Intolerance", probability: 45, risk: "low" },
+          { name: "Bacterial Infection", probability: 35, risk: "medium" },
+          { name: "Inflammatory Bowel Disease", probability: 20, risk: "high" }
+        ],
+
+        // Musculoskeletal symptoms
+        "back pain": [
+          { name: "Muscle Strain", probability: 65, risk: "low" },
+          { name: "Herniated Disc", probability: 35, risk: "medium" },
+          { name: "Arthritis", probability: 30, risk: "medium" },
+          { name: "Kidney Infection", probability: 20, risk: "high" }
+        ],
+        "joint pain": [
+          { name: "Osteoarthritis", probability: 55, risk: "medium" },
+          { name: "Rheumatoid Arthritis", probability: 35, risk: "high" },
+          { name: "Gout", probability: 30, risk: "medium" },
+          { name: "Lupus", probability: 15, risk: "high" }
+        ],
+        "muscle pain": [
+          { name: "Fibromyalgia", probability: 40, risk: "low" },
+          { name: "Viral Infection", probability: 45, risk: "low" },
+          { name: "Chronic Fatigue Syndrome", probability: 25, risk: "medium" },
+          { name: "Electrolyte Imbalance", probability: 30, risk: "medium" }
+        ],
+
+        // General symptoms
+        "fever": [
+          { name: "Viral Infection", probability: 70, risk: "low" },
+          { name: "Bacterial Infection", probability: 45, risk: "medium" },
+          { name: "Flu", probability: 60, risk: "medium" },
+          { name: "COVID-19", probability: 40, risk: "medium" }
+        ],
+        "fatigue": [
+          { name: "Anemia", probability: 45, risk: "low" },
+          { name: "Sleep Deprivation", probability: 60, risk: "low" },
+          { name: "Depression", probability: 40, risk: "medium" },
+          { name: "Chronic Fatigue Syndrome", probability: 25, risk: "medium" },
+          { name: "Hypothyroidism", probability: 35, risk: "high" }
+        ],
+        "rash": [
+          { name: "Allergic Reaction", probability: 65, risk: "low" },
+          { name: "Eczema", probability: 45, risk: "low" },
+          { name: "Psoriasis", probability: 30, risk: "medium" },
+          { name: "Lyme Disease", probability: 15, risk: "high" }
+        ]
+      };
+
+      // Special condition combinations that modify probabilities
+      const conditionCombinations = {
+        ["headache,nausea"]: [
+          { name: "Migraine", probability: 75, risk: "medium" },
+          { name: "Concussion", probability: 30, risk: "high" }
+        ],
+        ["fever,cough"]: [
+          { name: "Flu", probability: 80, risk: "medium" },
+          { name: "COVID-19", probability: 65, risk: "medium" },
+          { name: "Pneumonia", probability: 40, risk: "high" }
+        ],
+        ["chest pain,shortness of breath"]: [
+          { name: "Heart Attack", probability: 45, risk: "high" },
+          { name: "Pulmonary Embolism", probability: 35, risk: "high" },
+          { name: "Angina", probability: 50, risk: "high" }
+        ],
+        ["abdominal pain,nausea"]: [
+          { name: "Gastroenteritis", probability: 70, risk: "medium" },
+          { name: "Food Poisoning", probability: 60, risk: "medium" },
+          { name: "Appendicitis", probability: 30, risk: "high" }
+        ],
+        ["joint pain,fatigue"]: [
+          { name: "Rheumatoid Arthritis", probability: 55, risk: "high" },
+          { name: "Lupus", probability: 40, risk: "high" }
+        ]
+      };
+
+      // First check for specific symptom combinations
+      const symptomKey = symptoms.sort().join(',');
+      if (conditionCombinations[symptomKey]) {
+        return conditionCombinations[symptomKey].slice(0, 3); // Return top 3 for combinations
+      }
+
+      // If no specific combination, look up individual symptoms
+      const matchedConditions = [];
+      const seenConditions = new Set();
+
+      symptoms.forEach(symptom => {
+        if (symptomConditions[symptom]) {
+          symptomConditions[symptom].forEach(condition => {
+            if (!seenConditions.has(condition.name)) {
+              matchedConditions.push(condition);
+              seenConditions.add(condition.name);
+            }
+          });
+        }
+      });
+
+      // If no matches, return a generic condition
+      if (matchedConditions.length === 0) {
+        return [
+          { name: "General Medical Concern", probability: 50, risk: "medium" }
+        ];
+      }
+
+      // Sort by probability (highest first) and return top 3
+      return matchedConditions
+        .sort((a, b) => b.probability - a.probability)
+        .slice(0, 3);
+    }
+
+
+
+    // Generate mock recommendations
+    function generateRecommendations(symptoms) {
+      const hasHighRisk = symptoms.includes("chest pain") ||
+        symptoms.includes("shortness of breath") ||
+        symptoms.includes("palpitations");
+
+      if (hasHighRisk) {
+        return "Urgent: Recommended immediate consultation with a healthcare provider. Avoid strenuous activity and monitor symptoms closely.";
+      }
+
+      const recommendations = [
+        "Recommended: Schedule an appointment with your primary care physician within the next week.",
+        "Self-care: Get plenty of rest and stay hydrated.",
+        "Monitoring: Keep track of your symptoms and note any changes.",
+        "OTC Medication: Consider over-the-counter pain relief if needed.",
+        "Prevention: Wash hands frequently to prevent spread of infection."
+      ];
+
+      return recommendations.join(" ");
+    }
+
+    // Generate random appointment time
+    function generateAppointmentTime() {
+      const times = [
+        "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
+        "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM"
+      ];
+      return times[Math.floor(Math.random() * times.length)];
+    }
+
+    // Generate random appointment date (within next 14 days)
+    function generateAppointmentDate() {
+      const appointmentDate = new Date();
+      const daysToAdd = Math.floor(Math.random() * 14) + 1; // 1-14 days from now
+      appointmentDate.setDate(appointmentDate.getDate() + daysToAdd);
+      return appointmentDate;
+    }
+
+    // Book a doctor appointment
+    function bookDoctor(doctorId) {
+      const doctor = database.doctors.find(d => d.id === doctorId);
+      if (!doctor) return;
+
+      // Show loading state
+      const bookBtn = document.querySelector(`.action-btn[data-doctor-id="${doctorId}"]`);
+      const originalText = bookBtn.innerHTML;
+      bookBtn.innerHTML = `<span class="spinner"></span> Booking...`;
+      bookBtn.disabled = true;
+
+      // Simulate API call
+      setTimeout(() => {
+        // Create a new appointment with dynamic date and time
+        const appointmentDate = generateAppointmentDate();
+        const appointmentTime = generateAppointmentTime();
+
+        const newAppointment = {
+          userId: currentUser.id,
+          doctor: {
+            name: doctor.name,
+            specialty: doctor.specialty,
+            rating: doctor.rating,
+            avatar: doctor.avatar
+          },
+          date: appointmentDate.toISOString(),
+          time: appointmentTime,
+          location: doctor.hospital,
+          status: "confirmed"
+        };
+
+        // Save to Firestore
+        firebase.firestore().collection('appointments').add(newAppointment).then((docRef) => {
+          // Add to local database with Firestore ID
+          newAppointment.id = docRef.id;
+          database.appointments.push(newAppointment);
+
+          // Reset button
+          bookBtn.innerHTML = originalText;
+          bookBtn.disabled = false;
+
+          // Show success message
+          showToast(`Appointment booked with ${doctor.name} (${doctor.specialty})`);
+
+          // Switch to appointments tab and reload
+          switchTab("appointments");
+          loadAppointments();
+        }).catch((error) => {
+          console.error('Error booking appointment:', error);
+          showToast('Error booking appointment', true);
+
+          // Reset button even if save failed
+          bookBtn.innerHTML = originalText;
+          bookBtn.disabled = false;
+        });
+      }, 1500);
+    }
+
+    // Handle appointment actions
+    function handleAppointmentAction(appointmentId) {
+      const appointment = database.appointments.find(a => a.id === appointmentId);
+      if (!appointment) return;
+
+      if (appointment.status === "confirmed") {
+        showToast(`Preparing virtual visit with ${appointment.doctor.name}...`);
+      } else {
+        showToast(`Rescheduling appointment with ${appointment.doctor.name}...`);
+      }
+    }
+
+    // Handle prediction actions
+    function handlePredictionAction(predictionId) {
+      const prediction = database.predictions.find(p => p.id === predictionId);
+      if (!prediction) return;
+
+      if (prediction.conditions[0].risk === "high") {
+        // Find a relevant specialist
+        const condition = prediction.conditions[0].name.toLowerCase();
+        let specialty = "";
+
+        if (condition.includes("cardiac")) {
+          specialty = "Cardiologist";
+        } else if (condition.includes("respiratory")) {
+          specialty = "Pulmonologist";
+        } else if (condition.includes("neuro")) {
+          specialty = "Neurologist";
+        } else {
+          specialty = "Internal Medicine";
+        }
+
+        const specialists = database.doctors.filter(d =>
+          d.specialty.toLowerCase().includes(specialty.toLowerCase()));
+
+        if (specialists.length > 0) {
+          // Switch to doctors tab and filter
+          switchTab("doctors");
+          showToast(`Found ${specialists.length} ${specialty} specialists for your condition`);
+        } else {
+          showToast("No specialists found for your condition. Please check back later.");
+        }
+      } else {
+        showToast("Prediction report saved to your history");
+      }
+    }
+
+    // Save profile changes
+    function saveProfile() {
+      if (!currentUser) return;
+
+      // Update user data
+      currentUser.name = userFullname.value;
+      currentUser.email = userEmail.value;
+      currentUser.phone = userPhone.value;
+      currentUser.dob = userDob.value;
+      currentUser.bloodType = userBloodType.value;
+      currentUser.allergies = userAllergies.value;
+
+      // Save to Firestore
+      firebase.firestore().collection('users').doc(currentUser.id).update({
+        name: currentUser.name,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        dob: currentUser.dob,
+        bloodType: currentUser.bloodType,
+        allergies: currentUser.allergies
+      }).then(() => {
+        // Update displayed name
+        userName.textContent = currentUser.name;
+        showToast("Profile updated successfully!");
+      }).catch((error) => {
+        console.error('Error updating profile:', error);
+        showToast('Error updating profile', true);
+      });
+    }
+
+    // Handle avatar upload
+    function handleAvatarUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.match('image.*')) {
+        showToast("Please select an image file");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        profileAvatar.src = event.target.result;
+        currentUser.avatar = event.target.result;
+        updateUserData();
+        showToast("Profile photo updated!");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Update user data in Firestore
+    function updateUserData() {
+      if (!currentUser) return;
+      firebase.firestore().collection('users').doc(currentUser.id).update({
+        settings: currentUser.settings
+      }).catch((error) => {
+        console.error('Error updating user settings:', error);
+      });
+    }
+
+    // Switch between tabs
+    function switchTab(tabName) {
+      // Update active nav item
+      navItems.forEach((nav) => nav.classList.remove("active"));
+      document.querySelector(`.nav-item[data-tab="${tabName}"]`).classList.add("active");
+
+      // Hide all content
+      Object.values(tabContents).forEach((content) => {
+        content.style.display = "none";
+      });
+
+      // Show selected content
+      tabContents[tabName].style.display = "block";
+
+      // Refresh data if needed
+      if (tabName === "predictions") {
+        loadPredictions();
+      } else if (tabName === "appointments") {
+        loadAppointments();
+      } else if (tabName === "doctors") {
+        loadDoctors();
+      } else if (tabName === "profile") {
+        loadUserData();
+      }
+    }
+
+    // Show toast notification
+    function showToast(message) {
+      toast.textContent = message;
+      toast.className = "toast show";
+
+      setTimeout(() => {
+        toast.className = "toast";
+      }, 3000);
+    }
+
+    // Initialize the app
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+
+</html>
