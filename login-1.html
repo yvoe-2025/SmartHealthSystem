@@ -455,11 +455,11 @@
         // Check if user exists in Firestore
         const userDoc = await db.collection('users').doc(user.uid).get();
 
-        if (userDoc.exists) {
+        //if (userDoc.exists) {
           // Update last login timestamp
-          await db.collection('users').doc(user.uid).update({
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-          });
+          //await db.collection('users').doc(user.uid).update({
+          //  lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          //});
 
           // Redirect to dashboard
           showToast('Login successful! Redirecting...');
@@ -521,5 +521,6 @@
     });
   </script>
 </body>
+
 
 </html>
